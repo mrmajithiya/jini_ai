@@ -1,28 +1,33 @@
 // auth.ts
 import { auth, googleProvider, githubProvider } from "./firebase";
 import { signInWithPopup } from "firebase/auth";
-import { useRouter } from "next/navigation";
 
-const router = useRouter();
-
-export const loginWithGoogle = async () => {
+// Google login function
+export const loginWithGoogle = async (router: any) => {
   try {
     const result = await signInWithPopup(auth, googleProvider);
     const user = result.user;
     console.log("Google User:", user);
-    router.push("/");
+
+    // Redirect after login
+    router.push("/"); // or "/dashboard" if you prefer
+
     return user;
   } catch (err) {
     console.error("Google login error:", err);
   }
 };
 
-export const loginWithGithub = async () => {
+// GitHub login function
+export const loginWithGithub = async (router: any) => {
   try {
     const result = await signInWithPopup(auth, githubProvider);
     const user = result.user;
     console.log("GitHub User:", user);
-    router.push("/");
+
+    // Redirect after login
+    router.push("/"); // or "/dashboard"
+
     return user;
   } catch (err) {
     console.error("GitHub login error:", err);

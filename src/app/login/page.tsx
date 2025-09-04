@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { FaGithub } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import { auth } from "../../lib/firebase"; // import your firebase.ts
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { loginWithGoogle, loginWithGithub } from "../../lib/auth";
+import { onAuthStateChanged } from "firebase/auth";
+
 
 export default function LoginPage() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
@@ -48,6 +50,27 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // If user is logged in, redirect to home
+        router.replace("/"); 
+      } else {
+        setLoading(false); // show login page
+      }
+    });
+
+    return () => unsubscribe();
+  }, [router]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <main className="bg-gray-100">
@@ -205,7 +228,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     className="flex items-center gap-2 px-4 py-2 border rounded-lg shadow-md hover:bg-gray-100"
-                    onClick={loginWithGithub}
+                    onClick={() => loginWithGithub(router)}
                   >
                     <FaGithub
                       size={24}
@@ -218,7 +241,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     className="flex items-center gap-2 px-4 py-2 border rounded-lg shadow-md hover:bg-gray-100"
-                    onClick={loginWithGoogle}                  
+                    onClick={() => loginWithGoogle(router)}                
                   >
                     <FcGoogle size={24} />
                   </button>

@@ -781,7 +781,7 @@ export default function ChatGPTInterface() {
               onClick={() => setMenuOpen(!menuOpen)}
             >
               <div className={`${currentTheme.circalBg} w-6 h-6 rounded-full flex items-center justify-center text-xs text-white`}>
-                {userName?.slice(0,2).toUpperCase() || "O"}
+                {userName?.slice(0,1).toUpperCase() || "O"}
               </div>
               <span>{userName}</span>
               <span
@@ -830,7 +830,7 @@ export default function ChatGPTInterface() {
         </header>
 
         {/* Header (desktop) */}
-        <header className={`${currentTheme.sidebarBg} w-full  border-r px-6 py-2.5 flex items-center justify-between`}>
+        <header className={`${currentTheme.sidebarBg} w-full  border-r  flex items-center justify-between`}>
           <div className="flex items-center gap-2">
             {userName == "Guest" && (
               <>
@@ -864,21 +864,16 @@ export default function ChatGPTInterface() {
                 </a>
               </>
             ) : (
-              <div className="relative flex items-center gap-4">
+              <div className="relative items-center gap-4 hidden sm:flex">
                 {/* Profile dropdown */}
-                <button className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">
+                <button className="flex items-center gap-2 px-3 py-4.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">
                   <span className={`${currentTheme.sidebarText}`}>{userName}</span>
                   <div className={`${currentTheme.circalBg} w-8 h-8 rounded-full  flex items-center justify-center text-white font-semibold`}>
-                    {userName?.slice(0,2).toUpperCase() || "O"}
+                    {userName?.slice(0,1).toUpperCase() || "O"}
                   </div>
                   
                 </button>
-                {/* <a
-                  href="/downloads/app.apk"
-                  className="px-4 py-2 rounded-md bg-green-600 text-white hover:bg-green-700 transition"
-                >
-                  Download App
-                </a> */}
+                
               </div>
             )}
           </div>
