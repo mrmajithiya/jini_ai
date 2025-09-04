@@ -218,7 +218,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     className="flex items-center gap-2 px-4 py-2 border rounded-lg shadow-md hover:bg-gray-100"
-                    onClick={loginWithGoogle}
+                    onClick={loginWithGoogle}                  
                   >
                     <FcGoogle size={24} />
                   </button>
