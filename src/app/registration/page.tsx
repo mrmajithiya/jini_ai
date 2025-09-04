@@ -42,7 +42,7 @@ export default function RegistrationPage() {
       alert(`Welcome ${registerForm.name}, registration successful!`);
       setRegisterForm({ name: '', email: '', password: '', confirmPassword: '' });
       router.push("/login");
-    } catch (error: any) {
+    } catch (error : any) {
       alert(error.message);
     } finally {
       setLoading(false);

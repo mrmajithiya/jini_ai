@@ -1,24 +1,23 @@
-// src/app/pages/api/sitemap.ts
-import { NextRequest, NextResponse } from "next/server";
+// src/app/sitemap.xml/route.ts
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   const baseUrl = "https://jiniai.vercel.app";
 
   const staticPages = [
-    { url: "", priority: 1.0 }, // Only home page
+    { url: "", priority: 1.0 }, // homepage only
   ];
 
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   ${staticPages
-    .map((page) => {
-      return `
+    .map(
+      (page) => `
     <url>
       <loc>${baseUrl}/${page.url}</loc>
       <lastmod>${new Date().toISOString().split("T")[0]}</lastmod>
       <priority>${page.priority}</priority>
-    </url>`;
-    })
+    </url>`
+    )
     .join("")}
 </urlset>`;
 

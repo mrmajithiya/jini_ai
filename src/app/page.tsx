@@ -8,7 +8,6 @@ import { auth } from "../lib/firebase";
 import { signOut } from "firebase/auth";
 import { getDatabase, ref, push, set } from 'firebase/database';
 import { onValue, serverTimestamp } from "firebase/database";
-import LoginPage from './login/page';
 import { useRouter } from 'next/navigation';
 
 interface Message {
@@ -80,10 +79,11 @@ function parseHtmlToReact(html: string) {
 
 
 export default function ChatGPTInterface() {
+
   const idRef = useRef<number>(0);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState<string>('');
-  const [activeChat, setActiveChat] = useState<string>('New chat');
+
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(true);
   const [isNewChat, setIsNewChat] = useState<boolean>(true);
   const [isTyping, setIsTyping] = useState<boolean>(false);
@@ -140,7 +140,7 @@ export default function ChatGPTInterface() {
           const messagesArray = Object.values(messagesObj) as {
             role?: string;
             content?: string;
-            timestamp?: any;
+            timestamp?: Date;
           }[];
 
           // Filter valid messages with content
@@ -165,7 +165,7 @@ export default function ChatGPTInterface() {
 
           // Compose title from first 3 messages
           const titleParts = filteredMessages.slice(0, 3).map((msg) => {
-            const sender = msg.role === 'user' ? 'user' : msg.role === 'bot' ? '' : msg.role || '';
+            // const sender = msg.role === 'user' ? 'user' : msg.role === 'bot' ? '' : msg.role || '';
             const content =
               typeof msg.content === 'string' && msg.content.length > 30
                 ? msg.content.slice(0, 27) + '...'
@@ -183,7 +183,7 @@ export default function ChatGPTInterface() {
     });
 
     return () => unsubscribe();
-  }, [auth.currentUser?.uid, today]);
+  }, [db, today]);
 
   // ---------------- Greeting message ----------------
   useEffect(() => {
@@ -549,7 +549,7 @@ export default function ChatGPTInterface() {
         timestamp: serverTimestamp(),
       });
 
-    } catch (err) {
+    } catch (err: unknown) {
       console.error(err);
       const errorMsg: Message = {
         id: idRef.current + 1,
@@ -581,18 +581,22 @@ export default function ChatGPTInterface() {
         return;
       }
 
-      const chatMessages: Message[] = Object.entries(data.messages).map(([key, value]) => ({
-        id: String(key),
-        text: (value as any).content || "",
-        sender: ((value as any).role as "user" | "bot") || "bot",
-        timestamp: new Date((value as any).timestamp || Date.now()),
-      }));
+      const chatMessages: Message[] = Object.entries(data.messages).map(([key, value]) => {
+        const val:any = value ;
+        return {
+          id: String(key),
+          text: val.content || "",
+          sender: (val.role === "user" || val.role === "bot") ? val.role : "bot",
+          timestamp: val.timestamp ? new Date(val.timestamp) : new Date(),
+        };
+      });
 
       setMessages(chatMessages);
     });
 
     return () => unsubscribe();
-  }, [sessionPath]);
+  }, [sessionPath, db]);
+
 
 
 
