@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     siteName: "Jini AI",
     images: [
       {
-        url: "public/opengraph_jiniimage.png", // Replace with your OG image
+        url: "/opengraph_jiniimage.png", // Replace with your OG image
         width: 1200,
         height: 630,
         alt: "Jini AI Chatbot",
@@ -54,7 +54,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Jini AI – Your Smart Chat Assistant",
     description: "Chat with Jini AI, upload files, get smart responses, and explore premium features.",
-    images: ["public/opengraph_jiniimage.png"], // Replace with your OG image
+    images: ["/opengraph_jiniimage.png"], // Replace with your OG image
     creator: "@ommajithiya",
   },
   verification: {
