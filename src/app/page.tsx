@@ -9,6 +9,7 @@ import { signOut } from "firebase/auth";
 import { getDatabase, ref, push, set } from 'firebase/database';
 import { onValue, serverTimestamp } from "firebase/database";
 import { useRouter } from 'next/navigation';
+import { FiDownload } from "react-icons/fi";
 
 interface Message {
   id: string | number;
@@ -582,7 +583,7 @@ export default function ChatGPTInterface() {
       }
 
       const chatMessages: Message[] = Object.entries(data.messages).map(([key, value]) => {
-        const val:any = value ;
+        const val: any = value;
         return {
           id: String(key),
           text: val.content || "",
@@ -781,7 +782,7 @@ export default function ChatGPTInterface() {
               onClick={() => setMenuOpen(!menuOpen)}
             >
               <div className={`${currentTheme.circalBg} w-6 h-6 rounded-full flex items-center justify-center text-xs text-white`}>
-                {userName?.slice(0,1).toUpperCase() || "O"}
+                {userName?.slice(0, 1).toUpperCase() || "O"}
               </div>
               <span>{userName}</span>
               <span
@@ -814,24 +815,39 @@ export default function ChatGPTInterface() {
         <header
           className={`flex items-center justify-between p-4 border-b border-gray-200 md:hidden ${theme === 'light' ? 'bg-white text-gray-900' : 'bg-gray-800 text-gray-100'}`}
         >
-          <button onClick={() => setSidebarOpen(!sidebarOpen)}>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className={`h-6 w-6 ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
+          {userName !== "Guest" && (
+            <button onClick={() => setSidebarOpen(!sidebarOpen)}>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className={`h-6 w-6 ${theme === "light" ? "text-gray-700" : "text-gray-300"}`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              </svg>
+            </button>
+          )}
+
+
           <h1 className="text-lg font-semibold">Jini AI</h1>
-          <div className="w-6"></div>
+          <a
+            href="/Jini_AI.apk"
+            className="px-4 py-2 rounded-md bg-green-600 text-white hover:bg-green-700 transition"
+          >
+            <FiDownload size={18} />
+          </a>
+          {/* <div className="w-6"> </div> */}
         </header>
 
         {/* Header (desktop) */}
-        <header className={`${currentTheme.sidebarBg} w-full  border-r  flex items-center justify-between`}>
-          <div className="flex items-center gap-2">
+        <header className={`${currentTheme.sidebarBg} w-full items-center justify-between hidden sm:flex`}>
+          <div className="flex pl-4 items-center gap-2">
             {userName == "Guest" && (
               <>
                 <h1 className="text-xl font-bold text-gray-800 dark:text-white">Jini AI</h1>
@@ -841,7 +857,7 @@ export default function ChatGPTInterface() {
           </div>
 
           {/* Right Side */}
-          <div className="flex items-center gap-4">
+          <div className="flex p-4 items-center gap-4">
             {userName == "Guest" ? (
               <>
                 <Link
@@ -857,7 +873,7 @@ export default function ChatGPTInterface() {
                   Sign Up
                 </Link>
                 <a
-                  href="/downloads/app.apk"
+                  href="/Jini_AI.apk"
                   className="px-4 py-2 rounded-md bg-green-600 text-white hover:bg-green-700 transition"
                 >
                   Download App
@@ -869,11 +885,11 @@ export default function ChatGPTInterface() {
                 <button className="flex items-center gap-2 px-3 py-4.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">
                   <span className={`${currentTheme.sidebarText}`}>{userName}</span>
                   <div className={`${currentTheme.circalBg} w-8 h-8 rounded-full  flex items-center justify-center text-white font-semibold`}>
-                    {userName?.slice(0,1).toUpperCase() || "O"}
+                    {userName?.slice(0, 1).toUpperCase() || "O"}
                   </div>
-                  
+
                 </button>
-                
+
               </div>
             )}
           </div>
@@ -916,7 +932,7 @@ export default function ChatGPTInterface() {
             </div>
           ) : (
             <div className="space-y-6 max-w-4xl mx-auto">
-              
+
               {messages.map((message) => (
                 <div
                   key={message.id}
