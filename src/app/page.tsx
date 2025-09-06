@@ -24,60 +24,176 @@ type ChatHistoryItem = {
 };
 
 // Helper: convert CSS string to React style object
-function styleStringToObject(styleString: string) {
+// function styleStringToObject(styleString: string) {
+//   return styleString
+//     .split(';')
+//     .filter(Boolean)
+//     .reduce<Record<string, string>>((styleObj, styleProperty) => {
+//       const [key, value] = styleProperty.split(':');
+//       if (!key || !value) return styleObj;
+//       const jsKey = key
+//         .trim()
+//         .replace(/-([a-z])/g, (_, char) => char.toUpperCase()); // convert kebab-case to camelCase
+//       styleObj[jsKey] = value.trim();
+//       return styleObj;
+//     }, {});
+// }
+function styleStringToObject(styleString: string): React.CSSProperties {
   return styleString
     .split(';')
     .filter(Boolean)
-    .reduce<Record<string, string>>((styleObj, styleProperty) => {
+    .reduce<React.CSSProperties>((styleObj, styleProperty) => {
       const [key, value] = styleProperty.split(':');
       if (!key || !value) return styleObj;
       const jsKey = key
         .trim()
-        .replace(/-([a-z])/g, (_, char) => char.toUpperCase()); // convert kebab-case to camelCase
-      styleObj[jsKey] = value.trim();
+        .replace(/-([a-z])/g, (_, char) => char.toUpperCase()) as keyof React.CSSProperties;
+      styleObj[jsKey] = value.trim() as any;
       return styleObj;
     }, {});
 }
 
 const VOID_ELEMENTS = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr']);
 
-function parseHtmlToReact(html: string) {
-  const template = document.createElement('template');
+
+// function parseHtmlToReact(html: string, currentTheme: any) {
+//   const template = document.createElement("template");
+//   template.innerHTML = html;
+//   const nodes = template.content.childNodes;
+
+//   const convertNode = (node: ChildNode, index: number): React.ReactNode => {
+//     if (node.nodeType === Node.TEXT_NODE) return node.textContent;
+//     if (node.nodeType !== Node.ELEMENT_NODE) return null;
+
+//     const el = node as HTMLElement;
+
+//     const styleAttr = el.getAttribute("style") || "";
+//     const style = styleStringToObject(styleAttr);
+
+//     // Apply theme-based defaults if not overridden by inline style
+//     if (!style.color && currentTheme?.textColor) {
+//       style.color = currentTheme.textColor; // universal text color
+//     }
+//     if (!style.backgroundColor && currentTheme?.bgColor) {
+//       style.backgroundColor = currentTheme.bgColor; // optional background color
+//     }
+
+//     const standardHtmlTags = [
+//       "div", "p", "span", "h1", "h2", "h3", "h4", "h5", "h6",
+//       "ul", "ol", "li", "b", "i", "strong", "em", "br", "hr"
+//     ];
+//     const tag = standardHtmlTags.includes(el.tagName.toLowerCase())
+//       ? el.tagName.toLowerCase()
+//       : "div";
+
+//     const children = Array.from(el.childNodes).map((child, idx) =>
+//       convertNode(child, idx)
+//     );
+
+//     // Theme-aware class mapping
+//     const classMap: Record<string, string> = {
+//       strong: `font-bold ${currentTheme.strongColor}`,
+//       b: `font-bold ${currentTheme.bColor}`,
+//       em: `italic ${currentTheme.emColor}`,
+//       i: `italic ${currentTheme.iColor}`,
+//       p: `mb-2 ${currentTheme.pColor}`,
+//       li: `list-disc ml-5 ${currentTheme.liColor}`,
+//       h1: `text-2xl font-bold mb-2 ${currentTheme.h1Color}`,
+//       h2: `text-xl font-semibold mb-1 ${currentTheme.h2Color}`,
+//       h3: `text-lg font-semibold ${currentTheme.h3Color}`,
+//       span: `${currentTheme.spanColor}`,
+//       div: `${currentTheme.divColor}`,
+//       ul: `${currentTheme.ulColor}`,
+//       ol: `${currentTheme.olColor}`,
+//       hr: `${currentTheme.hrColor}`,
+//     };
+
+
+//     const extraProps: any = { style, key: index };
+
+//     if (classMap[tag]) {
+//       extraProps.className = classMap[tag];
+//     }
+
+//     if (VOID_ELEMENTS.has(tag)) {
+//       return React.createElement(tag, extraProps);
+//     }
+
+//     return React.createElement(tag, extraProps, children);
+//   };
+
+//   return Array.from(nodes).map((node, index) => convertNode(node, index));
+// }
+
+function parseHtmlToReact(html: string, currentTheme: any): React.ReactNode[] {
+  const template = document.createElement("template");
   template.innerHTML = html;
-  const nodes = template.content.childNodes;
+  const nodes = Array.from(template.content.childNodes);
+
+  const standardHtmlTags = [
+    "div", "p", "span", "h1", "h2", "h3", "h4", "h5", "h6",
+    "ul", "ol", "li", "b", "i", "strong", "em", "br", "hr"
+  ];
+
+  const classMap: Record<string, string> = {
+    strong: `font-bold ${currentTheme.strongColor || ''}`,
+    b: `font-bold ${currentTheme.bColor || ''}`,
+    em: `italic ${currentTheme.emColor || ''}`,
+    i: `italic ${currentTheme.iColor || ''}`,
+    p: `mb-2 ${currentTheme.pColor || ''}`,
+    li: `list-disc ml-5 ${currentTheme.liColor || ''}`,
+    h1: `text-2xl font-bold mb-2 ${currentTheme.h1Color || ''}`,
+    h2: `text-xl font-semibold mb-1 ${currentTheme.h2Color || ''}`,
+    h3: `text-lg font-semibold ${currentTheme.h3Color || ''}`,
+    span: `${currentTheme.spanColor || ''}`,
+    div: `${currentTheme.divColor || ''}`,
+    ul: `${currentTheme.ulColor || ''}`,
+    ol: `${currentTheme.olColor || ''}`,
+    hr: `${currentTheme.hrColor || ''}`,
+  };
 
   const convertNode = (node: ChildNode, index: number): React.ReactNode => {
     if (node.nodeType === Node.TEXT_NODE) return node.textContent;
     if (node.nodeType !== Node.ELEMENT_NODE) return null;
 
     const el = node as HTMLElement;
-
-    // Convert CSS string to React style object
-    const styleAttr = el.getAttribute('style') || '';
+    const styleAttr = el.getAttribute("style") || "";
     const style = styleStringToObject(styleAttr);
 
-    // Map unknown/non-standard tags to a safe HTML element
-    const standardHtmlTags = [
-      'div', 'p', 'span', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-      'ul', 'ol', 'li', 'b', 'i', 'strong', 'em', 'br', 'hr'
-    ];
-    const tag = standardHtmlTags.includes(el.tagName.toLowerCase())
-      ? el.tagName.toLowerCase()
-      : 'div'; // fallback for unknown tags like <think>
-
-    const children = Array.from(el.childNodes).map((child, idx) => convertNode(child, idx));
-
-    // Handle void elements: cannot have children
-    if (VOID_ELEMENTS.has(tag)) {
-      return React.createElement(tag, { style, key: index });
+    // Apply theme defaults only if not already set
+    if (!style.color && currentTheme.textColor) {
+      style.color = currentTheme.textColor;
+    }
+    if (!style.backgroundColor && currentTheme.bgColor) {
+      style.backgroundColor = currentTheme.bgColor;
     }
 
-    return React.createElement(tag, { style, key: index }, children);
+    const tag = standardHtmlTags.includes(el.tagName.toLowerCase())
+      ? el.tagName.toLowerCase()
+      : "div";
+
+    const children = Array.from(el.childNodes).map((child, idx) =>
+      convertNode(child, idx)
+    );
+
+    const extraProps: React.HTMLAttributes<HTMLElement> & { style: React.CSSProperties; key: number } = {
+      style,
+      key: index
+    };
+
+    if (classMap[tag]) {
+      extraProps.className = classMap[tag];
+    }
+
+    if (VOID_ELEMENTS.has(tag)) {
+      return React.createElement(tag, extraProps);
+    }
+
+    return React.createElement(tag, extraProps, children);
   };
 
-  return Array.from(nodes).map((node, index) => convertNode(node, index));
+  return nodes.map((node, index) => convertNode(node, index));
 }
-
 
 export default function ChatGPTInterface() {
 
@@ -110,6 +226,8 @@ export default function ChatGPTInterface() {
 
   const router = useRouter();
 
+  const [loadingChats, setLoadingChats] = useState(true);
+
   // ---------------- Fetch chat history ----------------
   useEffect(() => {
     const uid = auth.currentUser?.uid || '';
@@ -118,16 +236,20 @@ export default function ChatGPTInterface() {
     // Always keep same dependencies count
     if (!uid || !day) {
       setChatHistory([]);
+      setLoadingChats(false);
       return;
     }
 
     const chatsPath = `users/${uid}/chats/${day}`;
     const chatsRef = ref(db, chatsPath);
 
+    setLoadingChats(true);
+
     const unsubscribe = onValue(chatsRef, (snapshot) => {
       const data = snapshot.val();
       if (!data) {
         setChatHistory([]);
+        setLoadingChats(false);
         return;
       }
 
@@ -181,6 +303,7 @@ export default function ChatGPTInterface() {
       });
 
       setChatHistory(history);
+      setLoadingChats(false);
     });
 
     return () => unsubscribe();
@@ -288,13 +411,30 @@ export default function ChatGPTInterface() {
       userMsgBg: 'bg-blue-500',
       userMsgText: 'text-white',
       botMsgBg: 'bg-gray-200',
-      botMsgText: 'text-gray-900',
+      // botMsgText: 'text-gray-900',
       typingBg: 'bg-gray-200',
       typingText: 'text-gray-700',
       placeholderText: 'placeholder-gray-500',
       hoverSidebarBg: 'hover:bg-gray-100',
       borderColor: 'border-gray-300',
       circalBg: 'bg-gray-800/80',
+      selectedChatbg: 'bg-gray-200',
+      // For HTML parsing
+      botMsgText: "text-gray-800",
+      strongColor: "text-gray-700",
+      bColor: "text-blue-600",
+      emColor: "text-green-600",
+      iColor: "text-purple-600",
+      pColor: "text-gray-700",
+      liColor: "text-gray-700",
+      h1Color: "text-black",
+      h2Color: "text-gray-900",
+      h3Color: "text-gray-800",
+      spanColor: "text-gray-700",
+      divColor: "text-gray-800",
+      ulColor: "text-gray-800",
+      olColor: "text-gray-800",
+      hrColor: "border-gray-400",
     },
     dark: {
       background: 'bg-gray-900',
@@ -309,13 +449,30 @@ export default function ChatGPTInterface() {
       userMsgBg: 'bg-blue-700',
       userMsgText: 'text-white',
       botMsgBg: 'bg-gray-700',
-      botMsgText: 'text-gray-300',
+      // botMsgText: 'text-gray-300',
       typingBg: 'bg-gray-700',
       typingText: 'text-gray-300',
       placeholderText: 'placeholder-gray-400',
       hoverSidebarBg: 'hover:bg-gray-700',
       borderColor: 'border-gray-700',
       circalBg: 'bg-gray-100/40',
+      selectedChatbg: 'bg-gray-700',
+      // For HTML parsing
+      botMsgText: "text-gray-200",
+      strongColor: "text-gray-300",
+      bColor: "text-blue-400",
+      emColor: "text-green-400",
+      iColor: "text-purple-400",
+      pColor: "text-gray-300",
+      liColor: "text-gray-300",
+      h1Color: "text-white",
+      h2Color: "text-gray-300",
+      h3Color: "text-gray-300",
+      spanColor: "text-gray-300",
+      divColor: "text-gray-200",
+      ulColor: "text-gray-200",
+      olColor: "text-gray-200",
+      hrColor: "border-gray-600",
     },
   };
 
@@ -749,15 +906,38 @@ export default function ChatGPTInterface() {
           <div className=" border-t mt-5 pt-4">
             <h3 className="text-sm font-medium mb-2">Chats</h3>
             <div className="max-h-73 overflow-y-auto">
-              <ul className="space-y-2">
+              {/* <ul className="space-y-2">
                 {chatHistory.length === 0 ? (
                   <li>No chat history available</li>
                 ) : (
                   [...chatHistory].reverse().map((chat) => (
                     <li
                       key={chat.id}
-                      className={`text-sm cursor-pointer p-2 rounded-md ${selectedChatId === chat.id ? "bg-blue-200" : currentTheme.sidebarText
+                      className={`text-sm cursor-pointer p-2 rounded-md ${selectedChatId === chat.id ? currentTheme.selectedChatbg : currentTheme.sidebarText
                         } ${currentTheme.hoverSidebarBg}`}
+                      onClick={() => {
+                        if (isNewChat) setIsNewChat(false);
+                        setSelectedChatId(chat.id);
+                        setSessionPath(`users/${auth.currentUser?.uid}/chats/${today}/${chat.id}/messages`);
+                      }}
+                    >
+                      {chat.title}
+                    </li>
+                  ))
+                )}
+              </ul> */}
+              <ul className="space-y-2">
+                {loadingChats ? (
+                  <li className="text-sm p-2 text-gray-500 italic">Loading chats...</li>
+                ) : chatHistory.length === 0 ? (
+                  <li className="text-sm p-2 text-gray-500 italic">No chat history available</li>
+                ) : (
+                  [...chatHistory].reverse().map((chat) => (
+                    <li
+                      key={chat.id}
+                      className={`text-sm cursor-pointer p-2 rounded-md 
+                        ${selectedChatId === chat.id ? currentTheme.selectedChatbg : currentTheme.sidebarText}
+                        ${currentTheme.hoverSidebarBg}`}
                       onClick={() => {
                         if (isNewChat) setIsNewChat(false);
                         setSelectedChatId(chat.id);
@@ -857,7 +1037,7 @@ export default function ChatGPTInterface() {
           </div>
 
           {/* Right Side */}
-          <div className="flex p-4 items-center gap-4">
+          <div className="flex p-2 items-center gap-4">
             {userName == "Guest" ? (
               <>
                 <Link
@@ -882,7 +1062,7 @@ export default function ChatGPTInterface() {
             ) : (
               <div className="relative items-center gap-4 hidden sm:flex">
                 {/* Profile dropdown */}
-                <button className="flex items-center gap-2 px-3 py-4.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">
+                <button className={`flex items-center gap-2 px-3 py-2 rounded-md ${currentTheme.hoverSidebarBg}`}>
                   <span className={`${currentTheme.sidebarText}`}>{userName}</span>
                   <div className={`${currentTheme.circalBg} w-8 h-8 rounded-full  flex items-center justify-center text-white font-semibold`}>
                     {userName?.slice(0, 1).toUpperCase() || "O"}
@@ -933,7 +1113,7 @@ export default function ChatGPTInterface() {
           ) : (
             <div className="space-y-6 max-w-4xl mx-auto">
 
-              {messages.map((message) => (
+              {/* {messages.map((message) => (
                 <div
                   key={message.id}
                   className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
@@ -945,12 +1125,42 @@ export default function ChatGPTInterface() {
                       }`}
                   >
                     {message.sender === 'bot' ? (
-                      parseHtmlToReact(message.text) // Make sure this returns React elements
+                      parseHtmlToReact(message.text, currentTheme) // Make sure this returns React elements
                     ) : (
-                      <p className="whitespace-pre-wrap">{message.text}</p> // Wrap user text in <p>
+                      <p className={`${currentTheme.userMsgText} whitespace-pre-wrap`}>{message.text}</p> // Wrap user text in <p>
                     )}
                     <div
-                      className={`text-xs mt-1 text-right ${message.sender === 'user' ? 'opacity-70' : 'opacity-60'
+                      className={`text-xs mt-1 text-right ${message.sender === 'user'
+                          ? `${currentTheme.userMsgText} opacity-70`
+                          : `${currentTheme.botMsgText} opacity-60`
+                        }`}
+                    >
+                      {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                  </div>
+                </div>
+              ))} */}
+              {messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div
+                    className={`max-w-xs md:max-w-md lg:max-w-lg rounded-lg px-4 py-2 ${message.sender === 'user'
+                        ? `${currentTheme.userMsgBg} ${currentTheme.userMsgText} rounded-br-none`
+                        : `${currentTheme.botMsgBg} ${currentTheme.botMsgText} rounded-bl-none`
+                      }`}
+                  >
+                    {message.sender === 'bot' ? (
+                      // Ensure parseHtmlToReact returns an array of React elements
+                      <>{parseHtmlToReact(message.text, currentTheme)}</>
+                    ) : (
+                      <p className={`${currentTheme.userMsgText} whitespace-pre-wrap`}>{message.text}</p>
+                    )}
+                    <div
+                      className={`text-xs mt-1 text-right ${message.sender === 'user'
+                          ? `${currentTheme.userMsgText} opacity-70`
+                          : `${currentTheme.botMsgText} opacity-60`
                         }`}
                     >
                       {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -958,6 +1168,7 @@ export default function ChatGPTInterface() {
                   </div>
                 </div>
               ))}
+
 
               {isTyping && (
                 <div className={`flex justify-start`}>
@@ -968,7 +1179,7 @@ export default function ChatGPTInterface() {
                         <div className="h-2 w-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
                         <div className="h-2 w-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
                       </div>
-                      <span className="ml-2 text-sm">Typing...</span>
+                      {/* <span className="ml-2 text-sm">Typing...</span> */}
                     </div>
                   </div>
                 </div>
@@ -981,7 +1192,7 @@ export default function ChatGPTInterface() {
 
         {/* Bottom Input Area (shown when a chat is active) */}
         {!isNewChat && (
-          <div className={`p-4  ${currentTheme.borderColor} ${currentTheme.inputBg}`}>
+          <div className={`p-1  ${currentTheme.borderColor} ${currentTheme.inputBg}`}>
             <div className="max-w-4xl mx-auto">
               <div className="relative">
                 <input
