@@ -36,7 +36,7 @@ export default function LoginPage() {
       );
 
       const user = userCredential.user;
-      alert(`Welcome back, ${user.displayName || "User"}!`);
+      // alert(`Welcome back, ${user.displayName || "User"}!`);
 
       // redirect to dashboard or home
       router.push("/"); // change to your desired page

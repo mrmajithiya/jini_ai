@@ -229,23 +229,109 @@ export default function ChatGPTInterface() {
   const [loadingChats, setLoadingChats] = useState(true);
 
   // ---------------- Fetch chat history ----------------
+  // useEffect(() => {
+  //   const uid = auth.currentUser?.uid || '';
+  //   const day = today || '';
+
+  //   // Always keep same dependencies count
+  //   if (!uid || !day) {
+  //     setChatHistory([]);
+  //     setLoadingChats(false);
+  //     return;
+  //   }
+
+  //   const chatsPath = `users/${uid}/chats/${day}`;
+  //   const chatsRef = ref(db, chatsPath);
+
+  //   setLoadingChats(true);
+
+  //   const unsubscribe = onValue(chatsRef, (snapshot) => {
+  //     const data = snapshot.val();
+  //     if (!data) {
+  //       setChatHistory([]);
+  //       setLoadingChats(false);
+  //       return;
+  //     }
+
+  //     const history: ChatHistoryItem[] = [];
+
+  //     Object.keys(data).forEach((chatId) => {
+  //       const chatData = data[chatId];
+  //       // Correct for double nested "messages"
+  //       if (chatData.messages && chatData.messages.messages) {
+  //         const messagesObj = chatData.messages.messages;
+  //         const messagesArray = Object.values(messagesObj) as {
+  //           role?: string;
+  //           content?: string;
+  //           timestamp?: Date;
+  //         }[];
+
+  //         // Filter valid messages with content
+  //         const filteredMessages = messagesArray.filter(
+  //           (msg) => msg.role && typeof msg.content === 'string' && msg.content.trim() !== ''
+  //         );
+
+  //         // Sort by timestamp safely
+  //         filteredMessages.sort((a, b) => {
+  //           const t1 = a.timestamp
+  //             ? typeof a.timestamp === 'string'
+  //               ? Date.parse(a.timestamp)
+  //               : Number(a.timestamp)
+  //             : 0;
+  //           const t2 = b.timestamp
+  //             ? typeof b.timestamp === 'string'
+  //               ? Date.parse(b.timestamp)
+  //               : Number(b.timestamp)
+  //             : 0;
+  //           return t1 - t2;
+  //         });
+
+  //         // Compose title from first 3 messages
+  //         const titleParts = filteredMessages.slice(0, 3).map((msg) => {
+  //           // const sender = msg.role === 'user' ? 'user' : msg.role === 'bot' ? '' : msg.role || '';
+  //           const content =
+  //             typeof msg.content === 'string' && msg.content.length > 30
+  //               ? msg.content.slice(0, 27) + '...'
+  //               : msg.content || '';
+  //           return `${content}`;
+  //           // ${sender}
+  //         });
+
+  //         const title = titleParts.join('  ');
+  //         history.push({ id: chatId, title });
+  //       }
+  //     });
+
+  //     setChatHistory(history);
+  //     setLoadingChats(false);
+  //   });
+
+  //   return () => unsubscribe();
+  // }, [db, today]);
+
+
   useEffect(() => {
-    const uid = auth.currentUser?.uid || '';
-    const day = today || '';
+  const uid = auth.currentUser?.uid || "";
+  const day = today || "";
 
-    // Always keep same dependencies count
-    if (!uid || !day) {
-      setChatHistory([]);
-      setLoadingChats(false);
-      return;
-    }
+  if (!day) {
+    setChatHistory([]);
+    setLoadingChats(false);
+    return;
+  }
 
-    const chatsPath = `users/${uid}/chats/${day}`;
-    const chatsRef = ref(db, chatsPath);
+  // Detect path based on login type
+  const chatsPath =
+    !uid || userName === "Guest"
+      ? `guestChats/${day}`
+      : `users/${uid}/chats/${day}`;
 
-    setLoadingChats(true);
+  const chatsRef = ref(db, chatsPath);
+  setLoadingChats(true);
 
-    const unsubscribe = onValue(chatsRef, (snapshot) => {
+  const unsubscribe = onValue(
+    chatsRef,
+    (snapshot) => {
       const data = snapshot.val();
       if (!data) {
         setChatHistory([]);
@@ -255,59 +341,80 @@ export default function ChatGPTInterface() {
 
       const history: ChatHistoryItem[] = [];
 
-      Object.keys(data).forEach((chatId) => {
-        const chatData = data[chatId];
-        // Correct for double nested "messages"
-        if (chatData.messages && chatData.messages.messages) {
-          const messagesObj = chatData.messages.messages;
-          const messagesArray = Object.values(messagesObj) as {
-            role?: string;
-            content?: string;
-            timestamp?: Date;
-          }[];
+      Object.entries<any>(data).forEach(([chatId, chatData]) => {
+        // support both {messages} and {messages: {messages}}
+        const messagesObj =
+          chatData.messages?.messages || chatData.messages || null;
 
-          // Filter valid messages with content
-          const filteredMessages = messagesArray.filter(
-            (msg) => msg.role && typeof msg.content === 'string' && msg.content.trim() !== ''
-          );
+        if (!messagesObj) return;
 
-          // Sort by timestamp safely
-          filteredMessages.sort((a, b) => {
-            const t1 = a.timestamp
-              ? typeof a.timestamp === 'string'
-                ? Date.parse(a.timestamp)
-                : Number(a.timestamp)
-              : 0;
-            const t2 = b.timestamp
-              ? typeof b.timestamp === 'string'
-                ? Date.parse(b.timestamp)
-                : Number(b.timestamp)
-              : 0;
-            return t1 - t2;
-          });
+        const messagesArray = Object.values(messagesObj) as {
+          role?: string;
+          content?: string;
+          timestamp?: number | string;
+        }[];
 
-          // Compose title from first 3 messages
-          const titleParts = filteredMessages.slice(0, 3).map((msg) => {
-            // const sender = msg.role === 'user' ? 'user' : msg.role === 'bot' ? '' : msg.role || '';
-            const content =
-              typeof msg.content === 'string' && msg.content.length > 30
-                ? msg.content.slice(0, 27) + '...'
-                : msg.content || '';
-            return `${content}`;
-            // ${sender}
-          });
+        // Filter valid
+        const filteredMessages = messagesArray.filter(
+          (msg) =>
+            msg.role &&
+            typeof msg.content === "string" &&
+            msg.content.trim() !== ""
+        );
 
-          const title = titleParts.join('  ');
-          history.push({ id: chatId, title });
-        }
+        if (filteredMessages.length === 0) return;
+
+        // Sort by timestamp
+        filteredMessages.sort((a, b) => {
+          const t1 =
+            typeof a.timestamp === "string"
+              ? Date.parse(a.timestamp)
+              : Number(a.timestamp || 0);
+          const t2 =
+            typeof b.timestamp === "string"
+              ? Date.parse(b.timestamp)
+              : Number(b.timestamp || 0);
+          return t1 - t2;
+        });
+
+        // Title = first user + first bot
+        const firstUser = filteredMessages.find((m) => m.role === "user");
+        const firstBot = filteredMessages.find((m) => m.role === "bot");
+
+        const truncate = (text: string) =>
+          text.length > 30 ? text.slice(0, 27) + "..." : text;
+
+        const userMsg = firstUser?.content
+          ? truncate(firstUser.content)
+          : "";
+        const botMsg = firstBot?.content ? truncate(firstBot.content) : "";
+
+        const title =
+          userMsg && botMsg
+            ? `${userMsg} | ${botMsg}`
+            : filteredMessages
+                .slice(0, 2)
+                .map((m) => (m.content ? truncate(m.content) : ""))
+                .join(" | ") || "New Chat";
+
+        history.push({ id: chatId, title });
       });
 
       setChatHistory(history);
       setLoadingChats(false);
-    });
+    },
+    (error) => {
+      console.error("Error loading chats:", error);
+      setChatHistory([]);
+      setLoadingChats(false);
+    }
+  );
 
-    return () => unsubscribe();
-  }, [db, today]);
+  return () => unsubscribe();
+}, [db, today, userName]);
+
+
+
 
   // ---------------- Greeting message ----------------
   useEffect(() => {
