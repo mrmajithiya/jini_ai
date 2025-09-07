@@ -16,7 +16,7 @@ export default function RegistrationPage() {
   const router = useRouter();
 
   const toggleTheme = () => {
-    setTheme(theme === 'light' ? 'dark' : 'light');
+    setTheme(theme === 'light' ? 'dark' : 'dark');
   };
 
   const handleLogin = () => {
