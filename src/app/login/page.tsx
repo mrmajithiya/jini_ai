@@ -11,7 +11,7 @@ import { onAuthStateChanged } from "firebase/auth";
 
 
 export default function LoginPage() {
-  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [theme, setTheme] = useState<"light" | "dark">("dark");
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const router = useRouter();
