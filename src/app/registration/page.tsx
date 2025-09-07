@@ -10,7 +10,7 @@ import { loginWithGoogle, loginWithGithub } from "../../lib/auth";
 import { onAuthStateChanged } from "firebase/auth";
 
 export default function RegistrationPage() {
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const [registerForm, setRegisterForm] = useState({ name: '', email: '', password: '', confirmPassword: '' });
   const [loading, setLoading] = useState(false);
   const router = useRouter();
