@@ -204,7 +204,7 @@ export default function ChatGPTInterface() {
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(true);
   const [isNewChat, setIsNewChat] = useState<boolean>(true);
   const [isTyping, setIsTyping] = useState<boolean>(false);
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const db = getDatabase();
